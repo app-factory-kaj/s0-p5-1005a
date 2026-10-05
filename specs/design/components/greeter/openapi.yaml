@@ -9,7 +9,6 @@ paths:
     get:
       operationId: getGreeting
       summary: Return a JSON greeting for the given name, or a generic one
-      security: []
       parameters:
         - name: name
           in: query
