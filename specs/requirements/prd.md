@@ -2,7 +2,7 @@
 
 ## Problem Statement
 
-Teams building and integrating services on the platform need a small, predictable reference endpoint to greet a caller by name — useful as a smoke-test target, an onboarding example, and a conformance check against the organization's own service conventions (`app-factory-kaj/e2e-reference`). Today there is no minimal, standards-following service to point at for this.
+Teams building and integrating services on the platform need a small, predictable reference endpoint to greet a caller by name — useful as a smoke-test target, an onboarding example, and a conformance check against the organization's own service conventions (`app-factory-kaj/e2e-reference`). Today there is no minimal, standards-following service to point at for this. E2E marker s0p5-1005a.
 
 ## Solution
 
