@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-05T15:30:56Z",
-  "commit": "f93e925e283da07f8c251af045e6c9445c623fe4",
+  "generatedAt": "2026-10-05T15:32:58Z",
+  "commit": "a8727501ed3c6c5921707409e7eaf13691478d1e",
   "baseUrl": "http://development-default.openchoreoapis.localhost:19080/s0-p5-1005a-greeter-http",
-  "isolation": "the greeter API is stateless and read-only (GET /hello); each scenario asserts only on the response to its own request, so no shared state can leak between scenarios",
+  "isolation": "stateless GET-only API with no persistence; each scenario issues its own independent request and asserts only on that request's response",
   "scenarios": [
     {
       "feature": "Hello greeting",
@@ -14,35 +14,19 @@
       "tags": ["@story-1"],
       "outcome": "passed",
       "steps": [
-        {
-          "text": "the greeter service is available",
-          "keyword": "Given",
-          "command": "curl -s -o /dev/null -w '%{http_code}' \"http://development-default.openchoreoapis.localhost:19080/s0-p5-1005a-greeter-http/hello\"",
-          "exit": 0,
-          "observed": "200"
-        },
-        {
-          "text": "Priya calls GET /hello with name \"Priya\"",
-          "keyword": "When",
-          "command": "curl -s -i \"http://development-default.openchoreoapis.localhost:19080/s0-p5-1005a-greeter-http/hello?name=Priya\""
-        },
-        {
-          "text": "the response is a JSON greeting whose message addresses \"Priya\"",
-          "keyword": "Then",
-          "command": "curl -s \"http://development-default.openchoreoapis.localhost:19080/s0-p5-1005a-greeter-http/hello?name=Priya\" | grep -oP '\"message\"\\s*:\\s*\"[^\"]*Priya[^\"]*\"'",
-          "exit": 0,
-          "observed": "{\"name\":\"Priya\",\"message\":\"Hello, Priya!\"} — matched \"message\":\"Hello, Priya!\""
-        }
+        { "text": "the greeter service is available", "keyword": "Given",
+          "command": "curl -s -w \"\\nSTATUS:%{http_code}\\n\" \"$BASE/hello\"",
+          "exit": 0, "observed": "STATUS:200, body {\"message\":\"Hello, World!\"}" },
+        { "text": "Priya calls GET /hello with name \"Priya\"", "keyword": "When",
+          "command": "curl -s -w \"\\nSTATUS:%{http_code}\\n\" \"$BASE/hello?name=Priya\"",
+          "observed": "below the UI: no UI exists for this backend-only API, so the request was made directly against the endpoint" },
+        { "text": "the response is a JSON greeting whose message addresses \"Priya\"", "keyword": "Then",
+          "command": "curl -s \"$BASE/hello?name=Priya\" | grep -o '\"message\":\"Hello, Priya!\"'",
+          "exit": 0, "observed": "{\"name\":\"Priya\",\"message\":\"Hello, Priya!\"} — status 200, message contains \"Priya\"" }
       ],
       "evidence": {
-        "network": [
-          {
-            "method": "GET",
-            "url": "/hello?name=Priya",
-            "status": 200,
-            "body": "{\"name\":\"Priya\",\"message\":\"Hello, Priya!\"}"
-          }
-        ]
+        "network": [{ "method": "GET", "url": "/hello?name=Priya", "status": 200 }],
+        "console": []
       }
     },
     {
@@ -54,35 +38,19 @@
       "tags": ["@story-2"],
       "outcome": "passed",
       "steps": [
-        {
-          "text": "the greeter service is available",
-          "keyword": "Given",
-          "command": "curl -s -o /dev/null -w '%{http_code}' \"http://development-default.openchoreoapis.localhost:19080/s0-p5-1005a-greeter-http/hello\"",
-          "exit": 0,
-          "observed": "200"
-        },
-        {
-          "text": "Priya calls GET /hello with no name",
-          "keyword": "When",
-          "command": "curl -s -i \"http://development-default.openchoreoapis.localhost:19080/s0-p5-1005a-greeter-http/hello\""
-        },
-        {
-          "text": "the response is a JSON greeting whose message is a generic greeting",
-          "keyword": "Then",
-          "command": "curl -s \"http://development-default.openchoreoapis.localhost:19080/s0-p5-1005a-greeter-http/hello\" | grep -oP '\"message\"\\s*:\\s*\"Hello, World!\"'",
-          "exit": 0,
-          "observed": "{\"message\":\"Hello, World!\"} — matched \"message\":\"Hello, World!\", and no \"name\" field is present in the response"
-        }
+        { "text": "the greeter service is available", "keyword": "Given",
+          "command": "curl -s -w \"\\nSTATUS:%{http_code}\\n\" \"$BASE/hello\"",
+          "exit": 0, "observed": "STATUS:200, body {\"message\":\"Hello, World!\"}" },
+        { "text": "Priya calls GET /hello with no name", "keyword": "When",
+          "command": "curl -s -w \"\\nSTATUS:%{http_code}\\n\" \"$BASE/hello\"",
+          "observed": "below the UI: no UI exists for this backend-only API, so the request was made directly against the endpoint" },
+        { "text": "the response is a JSON greeting whose message is a generic greeting", "keyword": "Then",
+          "command": "curl -s \"$BASE/hello\" | grep -o '\"message\":\"Hello, World!\"'",
+          "exit": 0, "observed": "{\"message\":\"Hello, World!\"} — status 200, no \"name\" field, generic message" }
       ],
       "evidence": {
-        "network": [
-          {
-            "method": "GET",
-            "url": "/hello",
-            "status": 200,
-            "body": "{\"message\":\"Hello, World!\"}"
-          }
-        ]
+        "network": [{ "method": "GET", "url": "/hello", "status": 200 }],
+        "console": []
       }
     }
   ]
