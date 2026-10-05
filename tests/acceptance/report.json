@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-05T15:32:58Z",
-  "commit": "a8727501ed3c6c5921707409e7eaf13691478d1e",
+  "generatedAt": "2026-10-05T15:48:24Z",
+  "commit": "9dcb729327e64656c80e49bac5f16027edb9acd0",
   "baseUrl": "http://development-default.openchoreoapis.localhost:19080/s0-p5-1005a-greeter-http",
-  "isolation": "stateless GET-only API with no persistence; each scenario issues its own independent request and asserts only on that request's response",
+  "isolation": "stateless GET-only API with no roles ticket on this milestone; no container to create — each scenario calls /hello directly and asserts on the response it gets back",
   "scenarios": [
     {
       "feature": "Hello greeting",
@@ -12,20 +12,27 @@
       "rule": "A caller who supplies a name receives a greeting addressed to it",
       "scenario": "Greeting a named caller",
       "tags": ["@story-1"],
-      "outcome": "passed",
+      "outcome": "blocked",
       "steps": [
-        { "text": "the greeter service is available", "keyword": "Given",
-          "command": "curl -s -w \"\\nSTATUS:%{http_code}\\n\" \"$BASE/hello\"",
-          "exit": 0, "observed": "STATUS:200, body {\"message\":\"Hello, World!\"}" },
-        { "text": "Priya calls GET /hello with name \"Priya\"", "keyword": "When",
-          "command": "curl -s -w \"\\nSTATUS:%{http_code}\\n\" \"$BASE/hello?name=Priya\"",
-          "observed": "below the UI: no UI exists for this backend-only API, so the request was made directly against the endpoint" },
-        { "text": "the response is a JSON greeting whose message addresses \"Priya\"", "keyword": "Then",
-          "command": "curl -s \"$BASE/hello?name=Priya\" | grep -o '\"message\":\"Hello, Priya!\"'",
-          "exit": 0, "observed": "{\"name\":\"Priya\",\"message\":\"Hello, Priya!\"} — status 200, message contains \"Priya\"" }
+        {
+          "text": "the greeter service is available",
+          "keyword": "Given",
+          "command": "curl -s -i \"http://development-default.openchoreoapis.localhost:19080/s0-p5-1005a-greeter-http/hello?name=Priya\"",
+          "exit": 0,
+          "observed": "HTTP 503 from Envoy with body \"no healthy upstream\", repeated across 17 attempts spanning over 2 minutes (15:46:18-15:48:27 UTC) — the deployed service has no healthy backend instance, so the precondition could not be established"
+        },
+        {
+          "text": "Priya calls GET /hello with name \"Priya\"",
+          "keyword": "When",
+          "command": "curl -s -w \"HTTP_STATUS:%{http_code}\" \"http://development-default.openchoreoapis.localhost:19080/s0-p5-1005a-greeter-http/hello?name=Priya\"",
+          "exit": 0,
+          "observed": "HTTP_STATUS:503, body \"no healthy upstream\" — request never reached the application"
+        }
       ],
       "evidence": {
-        "network": [{ "method": "GET", "url": "/hello?name=Priya", "status": 200 }],
+        "network": [
+          { "method": "GET", "url": "/hello?name=Priya", "status": 503 }
+        ],
         "console": []
       }
     },
@@ -36,20 +43,27 @@
       "rule": "A caller who omits the name still receives a usable greeting",
       "scenario": "Greeting with no name supplied",
       "tags": ["@story-2"],
-      "outcome": "passed",
+      "outcome": "blocked",
       "steps": [
-        { "text": "the greeter service is available", "keyword": "Given",
-          "command": "curl -s -w \"\\nSTATUS:%{http_code}\\n\" \"$BASE/hello\"",
-          "exit": 0, "observed": "STATUS:200, body {\"message\":\"Hello, World!\"}" },
-        { "text": "Priya calls GET /hello with no name", "keyword": "When",
-          "command": "curl -s -w \"\\nSTATUS:%{http_code}\\n\" \"$BASE/hello\"",
-          "observed": "below the UI: no UI exists for this backend-only API, so the request was made directly against the endpoint" },
-        { "text": "the response is a JSON greeting whose message is a generic greeting", "keyword": "Then",
-          "command": "curl -s \"$BASE/hello\" | grep -o '\"message\":\"Hello, World!\"'",
-          "exit": 0, "observed": "{\"message\":\"Hello, World!\"} — status 200, no \"name\" field, generic message" }
+        {
+          "text": "the greeter service is available",
+          "keyword": "Given",
+          "command": "curl -s -i \"http://development-default.openchoreoapis.localhost:19080/s0-p5-1005a-greeter-http/hello\"",
+          "exit": 0,
+          "observed": "HTTP 503 from Envoy with body \"no healthy upstream\" — same gateway-level failure as the other scenario; the deployed service is unreachable"
+        },
+        {
+          "text": "Priya calls GET /hello with no name",
+          "keyword": "When",
+          "command": "curl -s -w \"HTTP_STATUS:%{http_code}\" \"http://development-default.openchoreoapis.localhost:19080/s0-p5-1005a-greeter-http/hello\"",
+          "exit": 0,
+          "observed": "HTTP_STATUS:503, body \"no healthy upstream\" — request never reached the application"
+        }
       ],
       "evidence": {
-        "network": [{ "method": "GET", "url": "/hello", "status": 200 }],
+        "network": [
+          { "method": "GET", "url": "/hello", "status": 503 }
+        ],
         "console": []
       }
     }
